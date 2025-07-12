@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body {
+      font-family: Inter, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background: #fff;
+    }
+    
+    h1 {
+      font-size: 20px;
+      font-weight: 600;
+      margin: 0 0 20px 0;
+    }
+    
+    .form-group {
+      margin-bottom: 16px;
+    }
+    
+    label {
+      display: block;
+      font-size: 12px;
+      font-weight: 500;
+      margin-bottom: 8px;
+      color: #333;
+    }
+    
+    select {
+      width: 100%;
+      padding: 8px 12px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 14px;
+      background: white;
+      cursor: pointer;
+    }
+    
+    select:focus {
+      outline: none;
+      border-color: #18a0fb;
+    }
+    
+    button {
+      width: 100%;
+      padding: 12px;
+      background: #18a0fb;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    
+    button:hover:not(:disabled) {
+      background: #0d90f3;
+    }
+    
+    button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+    
+    .progress {
+      margin-top: 16px;
+      padding: 12px;
+      background: #f5f5f5;
+      border-radius: 6px;
+      text-align: center;
+      font-size: 12px;
+      color: #666;
+      display: none;
+    }
+    
+    .progress.show {
+      display: block;
+    }
+    
+    .error {
+      margin-top: 16px;
+      padding: 12px;
+      background: #fee;
+      border: 1px solid #fcc;
+      border-radius: 6px;
+      color: #c00;
+      font-size: 12px;
+      display: none;
+    }
+    
+    .error.show {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <h1>FaceGrid Generator</h1>
+  
+  <div class="form-group">
+    <label for="gridSize">Grid Size</label>
+    <select id="gridSize">
+      <option value="3x3">3×3 (9 faces)</option>
+      <option value="4x4">4×4 (16 faces)</option>
+      <option value="5x5">5×5 (25 faces)</option>
+      <option value="6x6">6×6 (36 faces)</option>
+      <option value="7x7">7×7 (49 faces)</option>
+      <option value="8x8">8×8 (64 faces)</option>
+    </select>
+  </div>
+  
+  <div class="form-group">
+    <label for="gap">Gap between faces (px)</label>
+    <select id="gap">
+      <option value="0">No gap</option>
+      <option value="4" selected>4px</option>
+      <option value="8">8px</option>
+      <option value="12">12px</option>
+      <option value="16">16px</option>
+    </select>
+  </div>
+  
+  <button id="generate">Generate Face Grid</button>
+  
+  <div id="progress" class="progress"></div>
+  <div id="error" class="error"></div>
+  
+  <script>
+    const generateBtn = document.getElementById('generate');
+    const gridSizeSelect = document.getElementById('gridSize');
+    const gapSelect = document.getElementById('gap');
+    const progressDiv = document.getElementById('progress');
+    const errorDiv = document.getElementById('error');
+    
+    generateBtn.addEventListener('click', async () => {
+      const [rows, cols] = gridSizeSelect.value.split('x').map(Number);
+      const gap = parseInt(gapSelect.value);
+      const totalFaces = rows * cols;
+      
+      generateBtn.disabled = true;
+      progressDiv.textContent = `Fetching ${totalFaces} faces...`;
+      progressDiv.classList.add('show');
+      errorDiv.classList.remove('show');
+      
+      try {
+        const response = await fetch(`https://facegrid.juleslemee.com/api/generate-faces?count=${totalFaces}`);
+        const data = await response.json();
+        
+        if (!data.success) {
+          throw new Error(data.error || 'Failed to generate faces');
+        }
+        
+        progressDiv.textContent = 'Creating grid on canvas...';
+        
+        parent.postMessage({
+          pluginMessage: {
+            type: 'create-grid',
+            faces: data.faces,
+            rows,
+            cols,
+            gap
+          }
+        }, '*');
+        
+      } catch (error) {
+        errorDiv.textContent = `Error: ${error.message}`;
+        errorDiv.classList.add('show');
+        progressDiv.classList.remove('show');
+        generateBtn.disabled = false;
+      }
+    });
+    
+    window.onmessage = (event) => {
+      if (event.data.pluginMessage) {
+        const { type } = event.data.pluginMessage;
+        
+        if (type === 'grid-complete') {
+          progressDiv.textContent = 'Grid created successfully!';
+          setTimeout(() => {
+            progressDiv.classList.remove('show');
+          }, 2000);
+          generateBtn.disabled = false;
+        } else if (type === 'grid-error') {
+          errorDiv.textContent = `Error: ${event.data.pluginMessage.error}`;
+          errorDiv.classList.add('show');
+          progressDiv.classList.remove('show');
+          generateBtn.disabled = false;
+        }
+      }
+    };
+  </script>
+</body>
+</html>
