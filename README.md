@@ -2,7 +2,7 @@
 
 Generate beautiful grids of AI-generated faces directly in Figma for mockups, presentations, and design projects.
 
-🌐 **Try the web version**: [facegrid.juleslemee.com](https://facegrid.juleslemee.com)
+![Plugin Usage](FaceGrid%20Figma%20Plugin.gif)
 
 ![FaceGrid](logo.png)
 
@@ -125,6 +125,9 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 If you encounter any issues or have questions:
 - Open an issue on [GitHub](https://github.com/juleslemee/facegrid-figma-plugin/issues)
 - Check the [Figma Plugin Documentation](https://www.figma.com/plugin-docs/)
+
+
+🌐 **Try the web version**: [facegrid.juleslemee.com](https://facegrid.juleslemee.com)
 
 ---
 
